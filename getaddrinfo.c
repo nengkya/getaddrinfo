@@ -1,102 +1,52 @@
-/*
-restrict allow to save one assembly instruction
-
-By adding this type qualifier, a programmer hints to the compiler that for the lifetime of the pointer,
-no other pointer will be used to access the object to which it points.
-This allows the compiler to make optimizations (for example, vectorization) that would not otherwise have been possible.
-
-restrict limits the effects of pointer aliasing, aiding optimizations.
-If the declaration of intent is not followed and the object is accessed by an independent pointer, this will result in undefined behavior.
-
-Signals exclusive access: int * restrict ptr;
-promises the compiler that ptr and any other pointer to the same data will not overlap or access the same memory in conflicting ways.
-
-Enables optimizations: Without restrict, compilers add safety checks for aliasing (multiple pointers to same memory).
-With restrict, they can skip checks, unroll loops, and use SIMD (vector) instructions for speed.
-
-Example: In restricted[i] = array1[i] + array2[i];
-if res overlaps with arr1 or arr2, the compiler might struggle.
-With int * restrict array1, * restrict restricted, the compiler knows they are separate and can optimize the loop.
-
-int getaddrinfo(const char * restrict node,
-                const char * restrict service,
-                const struct addrinfo * restrict hints,
-                struct addrinfo ** restrict res);
-
-struct addrinfo {
-    int ai_flags;
-    int ai_family;
-    int ai_socktype;
-    int ai_protocol;
-    socklen_t ai_addrlen;
-    struct sockaddr * ai_addr;
-    char * ai_canonname;
-    struct addrinfo * ai_next;
-};
-
-AF_INET  for older IPv4 (32-bit) addresses.
-AF_INET6 for the newer, vastly larger IPv6 (128-bit) address space.
-SOCK_STREAM TCP
-SOCK_DGRAM (datagram) UDP
-socklen_t Describes the length of a socket address. This is an integer type of at least 32 bits.
-
-struck sockaddr {
-    sa_family_t sa_family; //unsigned short
-    char sa_data[];
-};
-*/
-
 #include <netdb.h> /*struct addrinfo*/
 #include <stddef.h> /*NULL*/
 #include <stdio.h>  /*fprintf*/
+#include <stdlib.h> /*exit*/
+#include <string.h> /*memset*/
 #define port80 "80"
 
 int main() {
 
-    int int_getaddrinfo;
-    struct addrinfo * hints, ** addrinfo_result;
+    int int_getaddrinfo, int_socket_file_descriptor;
+    struct addrinfo * hints, * getaddrinfo_result, * getaddrinfo_pointer;
 
+    memset(hints, 0, sizeof(hints));
     hints->ai_family = AF_UNSPEC /*allows ip4 or ip6*/;
     hints->ai_socktype = SOCK_DGRAM; /*User Datagram Protocol*/
-    /*
-    AI_CANONNAME
-    AI_NUMERICHOST
-    AI_NUMERICSERV
-    AI_V4MAPPED
-    AI_ALL
-    AI_ADDRCONFIG
-    AI_EXTFLAGS
-    */
     hints->ai_flags = AI_PASSIVE; /*wildcard ip*/
-    /*
-    IPPROTO_TCP
-    IPPROTO_UDP
-    IPPROTO_ICMP    //Internet Control Message Protocol
-    IPPROTO_ICMPV6  //ICMP for IPv6
-    IPPROTO_RAW     //Raw IP packets
-    IPPROTO_SCTP    //Stream Control Transmission Protocol
-    */
     hints->ai_protocol = 0; /*any protocol*/
+    hints->ai_canonname = NULL;
+    hints->ai_addr = NULL;
+    hints->ai_next = NULL;
 
-    //int_getaddrinfo = getaddrinfo(NULL, port80, hints, addrinfo_result);
-    
-    if (int_getaddrinfo = getaddrinfo(NULL, port80, hints, addrinfo_result))
+    if (int_getaddrinfo = getaddrinfo(NULL, port80, hints, &getaddrinfo_result))
         fprintf(stderr, "%s\n", gai_strerror(int_getaddrinfo));
 
+    /*
+    getaddrinfo() returns a list of address structures.
+    Try each address until we successfully bind(2).
+    If socket(2) (or bind(2)) fails,
+    we (close the socket and) try the next address.
+    */
+    for (getaddrinfo_pointer = getaddrinfo_result; getaddrinfo_pointer != NULL; getaddrinfo_pointer = getaddrinfo_pointer->ai_next) {
+
+        int_socket_file_descriptor = socket(getaddrinfo_pointer->ai_family,
+                                            getaddrinfo_pointer->ai_socktype,
+                                            getaddrinfo_pointer->ai_protocol);
+        if (int_socket_file_descriptor = -1) continue;
+
+        if (0 == bind(int_socket_file_descriptor, getaddrinfo_pointer->ai_addr, getaddrinfo_pointer->ai_addrlen)) {
+            /*printf("Open port %d\n", getaddrinfo_pointer->ai_addr->sa_family);*/
+            break;
+        }
+
+    }
+
+    freeaddrinfo(getaddrinfo_result);
+    /*no address succeeded*/
+    if (getaddrinfo_pointer == NULL) {
+        fprintf(stderr, "Could not bind\n");
+        exit(EXIT_FAILURE);
+    }
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
