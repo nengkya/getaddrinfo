@@ -46,6 +46,57 @@ struck sockaddr {
 };
 */
 
+#include <netdb.h> /*struct addrinfo*/
+#include <stddef.h> /*NULL*/
+#include <stdio.h>  /*fprintf*/
+#define port80 "80"
+
 int main() {
 
+    int int_getaddrinfo;
+    struct addrinfo * hints, ** addrinfo_result;
+
+    hints->ai_family = AF_UNSPEC /*allows ip4 or ip6*/;
+    hints->ai_socktype = SOCK_DGRAM; /*User Datagram Protocol*/
+    /*
+    AI_CANONNAME
+    AI_NUMERICHOST
+    AI_NUMERICSERV
+    AI_V4MAPPED
+    AI_ALL
+    AI_ADDRCONFIG
+    AI_EXTFLAGS
+    */
+    hints->ai_flags = AI_PASSIVE; /*wildcard ip*/
+    /*
+    IPPROTO_TCP
+    IPPROTO_UDP
+    IPPROTO_ICMP    //Internet Control Message Protocol
+    IPPROTO_ICMPV6  //ICMP for IPv6
+    IPPROTO_RAW     //Raw IP packets
+    IPPROTO_SCTP    //Stream Control Transmission Protocol
+    */
+    hints->ai_protocol = 0; /*any protocol*/
+
+    //int_getaddrinfo = getaddrinfo(NULL, port80, hints, addrinfo_result);
+    
+    if (int_getaddrinfo = getaddrinfo(NULL, port80, hints, addrinfo_result))
+        fprintf(stderr, "%s\n", gai_strerror(int_getaddrinfo));
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
