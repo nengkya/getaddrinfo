@@ -3,24 +3,24 @@
 #include <stdio.h>  /*fprintf*/
 #include <stdlib.h> /*exit*/
 #include <string.h> /*memset*/
+#include <unistd.h> /*close*/
 #define port80 "80"
 
 int main() {
 
-    int int_getaddrinfo, int_socket_file_descriptor;
-    struct addrinfo * hints, * getaddrinfo_result, * getaddrinfo_pointer;
+    int int_socket_file_descriptor;
+    struct addrinfo hints, * getaddrinfo_result, * getaddrinfo_pointer;
 
-    memset(hints, 0, sizeof(hints));
-    hints->ai_family = AF_UNSPEC /*allows ip4 or ip6*/;
-    hints->ai_socktype = SOCK_DGRAM; /*User Datagram Protocol*/
-    hints->ai_flags = AI_PASSIVE; /*wildcard ip*/
-    hints->ai_protocol = 0; /*any protocol*/
-    hints->ai_canonname = NULL;
-    hints->ai_addr = NULL;
-    hints->ai_next = NULL;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC /*allows ip4 or ip6*/;
+    hints.ai_socktype = SOCK_DGRAM; /*User Datagram Protocol*/
+    hints.ai_flags = AI_PASSIVE; /*wildcard ip*/
+    hints.ai_protocol = 0; /*any protocol*/
+    hints.ai_canonname = NULL;
+    hints.ai_addr = NULL;
+    hints.ai_next = NULL;
 
-    if (int_getaddrinfo = getaddrinfo(NULL, port80, hints, &getaddrinfo_result))
-        fprintf(stderr, "%s\n", gai_strerror(int_getaddrinfo));
+    getaddrinfo(NULL, "8010", &hints, &getaddrinfo_result);
 
     /*
     getaddrinfo() returns a list of address structures.
@@ -33,20 +33,15 @@ int main() {
         int_socket_file_descriptor = socket(getaddrinfo_pointer->ai_family,
                                             getaddrinfo_pointer->ai_socktype,
                                             getaddrinfo_pointer->ai_protocol);
-        if (int_socket_file_descriptor = -1) continue;
 
-        if (0 == bind(int_socket_file_descriptor, getaddrinfo_pointer->ai_addr, getaddrinfo_pointer->ai_addrlen)) {
-            /*printf("Open port %d\n", getaddrinfo_pointer->ai_addr->sa_family);*/
+        if (bind(int_socket_file_descriptor, getaddrinfo_pointer->ai_addr, getaddrinfo_pointer->ai_addrlen) == 0) {
+            printf("Open port %d\n", getaddrinfo_pointer->ai_addr->sa_family);
             break;
         }
-
     }
 
-    freeaddrinfo(getaddrinfo_result);
-    /*no address succeeded*/
-    if (getaddrinfo_pointer == NULL) {
-        fprintf(stderr, "Could not bind\n");
-        exit(EXIT_FAILURE);
-    }
-
+   if (getaddrinfo_pointer == NULL) {               /* No address succeeded */
+               fprintf(stderr, "Could not bind\n");
+               exit(EXIT_FAILURE);
+           }
 }
