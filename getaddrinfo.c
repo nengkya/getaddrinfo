@@ -4,7 +4,6 @@
 #include <stdlib.h> /*exit*/
 #include <string.h> /*memset*/
 #include <unistd.h> /*close*/
-#define port80 "80"
 
 int main() {
 
@@ -35,13 +34,10 @@ int main() {
                                             getaddrinfo_pointer->ai_protocol);
 
         if (bind(int_socket_file_descriptor, getaddrinfo_pointer->ai_addr, getaddrinfo_pointer->ai_addrlen) == 0) {
-            printf("Open port %d\n", getaddrinfo_pointer->ai_addr->sa_family);
+            printf("(*(*getaddrinfo_pointer).ai_addr).sa_family: %d\n", (*(*getaddrinfo_pointer).ai_addr).sa_family);
             break;
         }
+
     }
 
-   if (getaddrinfo_pointer == NULL) {               /* No address succeeded */
-               fprintf(stderr, "Could not bind\n");
-               exit(EXIT_FAILURE);
-           }
 }
