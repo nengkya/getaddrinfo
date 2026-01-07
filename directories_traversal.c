@@ -4,6 +4,11 @@
 #include <string.h> /*memset*/
 #include <stdlib.h>
 
+
+char ** wordlist;
+int line;
+
+
 void resolve_hostname() {
 
     int int_getaddrinfo_status_code;
@@ -14,7 +19,7 @@ void resolve_hostname() {
 
     int_getaddrinfo_status_code = getaddrinfo("esdm.go.id", NULL, hints, getaddrinfo_result); /*port NULL*/
 
-    fprintf(stderr, "getaddrinfo status code: %s\n", gai_strerror(int_getaddrinfo_status_code));
+    fprintf(stderr, "getaddrinfo from esdm.go.id status code: %s\n", gai_strerror(int_getaddrinfo_status_code));
 
     getaddrinfo_pointer = *getaddrinfo_result;
 
@@ -22,52 +27,74 @@ void resolve_hostname() {
 
         printf("(*getaddrinfo).ai_family == AF_INET\n");
 
-        /*
-        struct addrinfo {
-            int ai_flags;
-            int ai_family;
-            int ai_socktype;
-            int ai_protocol;
-            socklen_t ai_addrlen;
-            struct sockaddr * ai_addr;
-            char * ai_canonname;
-            struct addrinfo * ai_next;
-        };
+        struct sockaddr_in * ip4 = (struct sockaddr_in *)(* getaddrinfo_pointer).ai_addr;
 
-        struct sockaddr {
-            sa_family_t     sa_family; //address family uint32_t
-            char            sa_data[]; //socket address
-        };
-
-        struct sockaddr_in {
-            short            sin_family;  // e.g. AF_INET
-            unsigned short   sin_port;    // Port number
-            struct in_addr   sin_addr;    // IPv4 address structure
-            char             sin_zero[8]; // Padding to make it the same size as struct sockaddr
-        };
-
-        struct in_addr {
-            unsigned long s_addr; //or in_addr_t, a 32-bit unsigned integer
-            uint32_t      s_addr; //address in network byte order
-        };
-        */
-        struct sock_addrin * ip4 = (struct sock_addrin *)(* getaddrinfo_pointer).ai_addr;
-        //struct sock_addrin * ip  = (struct sockaddr_in *)(* getaddrinfo_pointer).ai_addr;
-
-        //printf("%ld\n", sizeof(ip));
-        printf("%ld\n", sizeof(ip4));
-
-        //internet_address = &((*ip4).sin_addr);
+        internet_address = &((*ip4).sin_addr);
 
     }
 
 }
 
 
+void load_wordlist() {
+
+    FILE * FILE_pointer = fopen("directory_list.txt", "r");
+    char * line_of_wordlist = (char *)malloc(256);
+
+    if (!FILE_pointer) perror("failed open wordlist file !");
+
+    /*file get string*/
+    while (fgets(line_of_wordlist, sizeof(line_of_wordlist), FILE_pointer)) {
+
+        printf("%s %ld %ld\n", line_of_wordlist, strlen(line_of_wordlist), sizeof(line_of_wordlist));
+
+        /*string complementary span; remove \n*/
+        line_of_wordlist[strcspn(line_of_wordlist, "\n")] = 0;
+        
+        //printf("%s %ld %ld\n", line_of_wordlist, strlen(line_of_wordlist), sizeof(line_of_wordlist));
+ 
+        char * directory_path = (char *)malloc(sizeof(line_of_wordlist));
+ 
+        //sprintf();
+
+        break;
+
+    }
+
+    line++;
+
+}
+
+
+
+
 int main() {
 
     resolve_hostname();
-
+    load_wordlist();
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
